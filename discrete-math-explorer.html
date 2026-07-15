@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discrete Structures — Why It Runs Your Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0E1320;
+    --bg-2: #0B0F19;
+    --surface: #161D2C;
+    --surface-2: #1C2438;
+    --border: #2A3448;
+    --border-soft: #232C40;
+    --amber: #E8A33D;
+    --amber-dim: #7A5A26;
+    --teal: #5FD9CB;
+    --teal-dim: #2B5C56;
+    --red: #E2685C;
+    --text: #ECE9E0;
+    --text-muted: #8B93A7;
+    --text-faint: #5A6379;
+    --font-display: 'Fraunces', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-ui: 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.55;
+  }
+  ::selection{ background:var(--amber-dim); color:var(--text); }
+
+  a{color:var(--teal);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(1100px 420px at 12% -10%, rgba(232,163,61,0.10), transparent 60%),
+      radial-gradient(900px 500px at 90% 10%, rgba(95,217,203,0.08), transparent 55%),
+      var(--bg-2);
+    border-bottom:1px solid var(--border);
+    padding:64px 32px 48px;
+  }
+  #bgGraph{position:absolute; inset:0; width:100%; height:100%; opacity:0.5;}
+  .hero-inner{position:relative; max-width:980px; margin:0 auto; text-align:left;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin-bottom:18px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:''; width:22px; height:1px; background:var(--teal); display:inline-block;}
+  .hero h1{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:clamp(34px, 5vw, 58px);
+    line-height:1.06;
+    margin:0 0 22px;
+    letter-spacing:-0.01em;
+    max-width:16ch;
+  }
+  .hero h1 em{
+    font-style:italic;
+    color:var(--amber);
+  }
+  .hero p.lede{
+    font-size:17px;
+    color:var(--text-muted);
+    max-width:60ch;
+    margin:0 0 8px;
+  }
+  .hero .q{
+    margin-top:28px;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--text-faint);
+    border-left:2px solid var(--border);
+    padding-left:14px;
+  }
+
+  /* ---------- APP LAYOUT ---------- */
+  .app{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    max-width:1280px;
+    margin:0 auto;
+    min-height:70vh;
+  }
+  @media (max-width: 860px){
+    .app{grid-template-columns:1fr;}
+  }
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    border-right:1px solid var(--border);
+    padding:28px 14px;
+    position:sticky;
+    top:0;
+    align-self:start;
+    max-height:100vh;
+    overflow-y:auto;
+  }
+  @media (max-width:860px){ .sidebar{position:relative; border-right:none; border-bottom:1px solid var(--border);} }
+  .sidebar-label{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    padding:0 12px 12px;
+  }
+  .topic-btn{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    width:100%;
+    text-align:left;
+    background:transparent;
+    border:none;
+    color:var(--text-muted);
+    padding:11px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-family:var(--font-ui);
+    font-size:14.5px;
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+  .topic-btn:hover{ background:var(--surface); color:var(--text); }
+  .topic-btn.active{ background:var(--surface-2); color:var(--text); }
+  .topic-btn.active .tnum{ color:var(--amber); }
+  .topic-btn .tnum{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--text-faint);
+    flex-shrink:0;
+    width:20px;
+  }
+
+  /* ---------- CONTENT ---------- */
+  .content{ padding:40px 40px 80px; min-width:0; }
+  @media (max-width:640px){ .content{ padding:28px 18px 60px; } }
+
+  .topic-eyebrow{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:10px;
+  }
+  .topic-title{
+    font-family:var(--font-display);
+    font-size:clamp(26px,3.4vw,38px);
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  .topic-tagline{
+    color:var(--text-muted);
+    font-size:16px;
+    max-width:65ch;
+    margin:0 0 32px;
+  }
+
+  .card-row{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:20px; margin-bottom:28px; }
+  @media (max-width:760px){ .card-row{ grid-template-columns:1fr; } }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 24px;
+  }
+  .card h3{
+    font-family:var(--font-ui);
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 14px;
+    font-weight:600;
+  }
+  .card p{ margin:0 0 10px; font-size:14.5px; color:var(--text); }
+  .card ul{ margin:0; padding-left:18px; }
+  .card li{ font-size:14.5px; margin-bottom:9px; color:var(--text); }
+  .card li b{ color:var(--amber); font-weight:600; }
+
+  .section-label{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:36px 0 14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-label::after{content:''; flex:1; height:1px; background:var(--border);}
+
+  .demo-box{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 24px;
+  }
+
+  .code-box{
+    background:#0B0F19;
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .code-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
+  .code-head span{ font-family:var(--font-mono); font-size:12px; color:var(--text-faint); }
+  .copy-btn{
+    font-family:var(--font-mono);
+    font-size:12px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text-muted);
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .copy-btn:hover{ color:var(--text); border-color:var(--teal-dim); }
+  .code-box pre{
+    margin:0;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--font-mono);
+    font-size:13px;
+    line-height:1.6;
+    color:#DCE3F0;
+  }
+  .code-box .c{ color:#6B7488; } /* comments */
+  .code-box .k{ color:#E8A33D; } /* keywords */
+  .code-box .s{ color:#5FD9CB; } /* strings */
+  .code-box .f{ color:#9AB6F5; } /* functions */
+
+  /* form controls used across demos */
+  input[type=text], input[type=number]{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px 12px;
+    border-radius:7px;
+    font-family:var(--font-mono);
+    font-size:13.5px;
+  }
+  input:focus, button:focus, select:focus{ outline:2px solid var(--teal-dim); outline-offset:1px; }
+  button.btn{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:9px 16px;
+    border-radius:7px;
+    cursor:pointer;
+    font-family:var(--font-ui);
+    font-size:13.5px;
+    font-weight:500;
+  }
+  button.btn:hover{ border-color:var(--teal-dim); }
+  button.btn.primary{ background:var(--amber); border-color:var(--amber); color:#1B1406; font-weight:600; }
+  button.btn.primary:hover{ opacity:0.9; }
+  label.small{ font-family:var(--font-mono); font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em; }
+  select{
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text);
+    padding:8px 10px; border-radius:7px; font-family:var(--font-ui); font-size:13.5px;
+  }
+
+  table.tt{ border-collapse:collapse; width:100%; font-family:var(--font-mono); font-size:13px; }
+  table.tt th, table.tt td{ border:1px solid var(--border); padding:8px 12px; text-align:center; }
+  table.tt th{ color:var(--text-faint); font-weight:500; background:var(--surface-2); }
+  table.tt td.true{ color:var(--teal); }
+  table.tt td.false{ color:var(--text-faint); }
+  table.tt tr.hi td{ background:rgba(232,163,61,0.08); }
+
+  .chip{
+    display:inline-block; padding:4px 10px; margin:3px 4px 3px 0;
+    background:var(--surface-2); border:1px solid var(--border); border-radius:999px;
+    font-family:var(--font-mono); font-size:12.5px; color:var(--text);
+  }
+  .badge{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 11px; border-radius:999px; font-size:12.5px; font-family:var(--font-mono);
+    border:1px solid var(--border); margin:3px 6px 3px 0;
+  }
+  .badge.pass{ color:var(--teal); border-color:var(--teal-dim); }
+  .badge.fail{ color:var(--text-faint); }
+  .badge .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:640px){ .grid-2{ grid-template-columns:1fr; } }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; margin-bottom:6px; }
+  .hint{ font-size:12.5px; color:var(--text-faint); margin-top:10px; }
+
+  footer{
+    border-top:1px solid var(--border);
+    padding:26px 40px 60px;
+    text-align:center;
+    color:var(--text-faint);
+    font-size:12.5px;
+    font-family:var(--font-mono);
+  }
+
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--surface-2); border-radius:6px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  .switch{ display:inline-flex; align-items:center; gap:10px; cursor:pointer; user-select:none; }
+  .switch .track{
+    width:44px; height:24px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border);
+    position:relative; transition:background 0.15s;
+  }
+  .switch .track::after{
+    content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+    background:var(--text-faint); transition:transform 0.15s, background 0.15s;
+  }
+  .switch.on .track{ background:var(--teal-dim); border-color:var(--teal); }
+  .switch.on .track::after{ transform:translateX(20px); background:var(--teal); }
+  .switch .val{ font-family:var(--font-mono); font-size:13px; color:var(--text-muted); width:14px; }
+
+  svg text{ font-family:var(--font-mono); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <canvas id="bgGraph"></canvas>
+  <div class="hero-inner">
+    <div class="eyebrow">Discrete Structures, made tangible</div>
+    <h1>The math you're being taught isn't <em>separate</em> from programming — it's the part underneath it.</h1>
+    <p class="lede">Nine topics from the Discrete Structures syllabus, each paired with the exact place it shows up in code: search algorithms, database queries, cryptography, permissions, compilers, and more. Play with the demo, then take the commented code with you.</p>
+    <p class="q">"Where will I ever use this?" — every student, week 2. Pick a topic on the left and find out.</p>
+  </div>
+</div>
+
+<div class="app">
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-label">Syllabus</div>
+    <div id="topicList"></div>
+  </nav>
+  <main class="content" id="content"></main>
+</div>
+
+<footer>Discrete Structures Explorer — build it once in lecture, keep it for every semester.</footer>
+
+<script>
+/* ================= BACKGROUND GRAPH ANIMATION ================= */
+(function(){
+  const canvas = document.getElementById('bgGraph');
+  const ctx = canvas.getContext('2d');
+  let w,h,nodes;
+  function size(){
+    const hero = canvas.parentElement;
+    w = canvas.width = hero.offsetWidth;
+    h = canvas.height = hero.offsetHeight;
+  }
+  function init(){
+    size();
+    const count = Math.max(18, Math.floor(w/90));
+    nodes = Array.from({length:count}, ()=>({
+      x: Math.random()*w, y: Math.random()*h,
+      vx: (Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25
+    }));
+  }
+  function step(){
+    ctx.clearRect(0,0,w,h);
+    for(const n of nodes){
+      n.x+=n.vx; n.y+=n.vy;
+      if(n.x<0||n.x>w) n.vx*=-1;
+      if(n.y<0||n.y>h) n.vy*=-1;
+    }
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i], b=nodes[j];
+        const d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d<150){
+          ctx.strokeStyle = `rgba(95,217,203,${0.14*(1-d/150)})`;
+          ctx.lineWidth=1;
+          ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        }
+      }
+    }
+    for(const n of nodes){
+      ctx.fillStyle='rgba(232,163,61,0.55)';
+      ctx.beginPath(); ctx.arc(n.x,n.y,2,0,Math.PI*2); ctx.fill();
+    }
+    requestAnimationFrame(step);
+  }
+  window.addEventListener('resize', init);
+  init(); step();
+})();
+
+/* ================= UTIL: escape + copy ================= */
+function esc(str){ return String(str).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+function highlightPy(code){
+  // very light, presentational-only highlighting
+  let s = esc(code);
+  s = s.replace(/#.*/g, m=>`<span class="c">${m}</span>`);
+  s = s.replace(/(""".*?"""|'.*?'|".*?")/gs, m=>`<span class="s">${m}</span>`);
+  s = s.replace(/\b(def|return|if|elif|else|for|while|in|import|from|class|True|False|None|not|and|or|print|yield|break|continue|raise|try|except|as|with|lambda)\b/g, m=>`<span class="k">${m}</span>`);
+  s = s.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\(/g, m=>`<span class="f">${m.slice(0,-1)}</span>(`);
+  return s;
+}
+
+function copyCode(btn, id){
+  const el = document.getElementById(id);
+  const text = el.getAttribute('data-raw');
+  navigator.clipboard.writeText(text).then(()=>{
+    const old = btn.textContent;
+    btn.textContent = 'Copied ✓';
+    setTimeout(()=>{ btn.textContent = old; }, 1400);
+  });
+}
+
+/* ================= TOPIC DATA ================= */
+const topics = [
+{
+  id:'logic', num:'01', title:'Propositional Logic',
+  tagline:'The algebra of true/false — every if-statement, every WHERE clause, every guard condition you will ever write.',
+  explanation:`Propositional logic studies statements that are strictly true or false, and how to combine them with AND, OR, NOT, and IMPLIES. A "compound proposition" like <span style="color:var(--amber)">p ∧ (q ∨ ¬r)</span> has a definite truth value once you know p, q, and r — and a truth table lists every possible outcome.`,
+  csUse:[
+    ['Control flow', 'Every <b>if / while</b> condition is a boolean expression evaluated the same way a truth table is built.'],
+    ['Query filters', 'SQL <b>WHERE</b> clauses and search filters ("in stock AND (color=red OR color=blue)") are propositional formulas.'],
+    ['Circuit design', 'Digital logic gates directly implement AND / OR / NOT — your CPU is propositional logic in silicon.'],
+    ['Testing', 'Boundary and condition-coverage testing is about making sure every row of the truth table gets exercised.'],
+  ],
+  demo:'logic',
+  code:`# Propositional logic → boolean expressions in Python
+# Same idea as a truth table: enumerate every combination
+# of inputs and check the result.
+
+from itertools import product
+
+def evaluate(p, q, r):
+    """A compound condition, exactly like an 'if' guard."""
+    return (p and q) or (not r)
+
+# Build the truth table for 3 variables (2^3 = 8 rows)
+print(f"{'p':<6}{'q':<6}{'r':<6}result")
+for p, q, r in product([False, True], repeat=3):
+    print(f"{str(p):<6}{str(q):<6}{str(r):<6}{evaluate(p, q, r)}")
+
+# --- Where this shows up in real code ---
+def can_checkout(in_stock, has_payment_method, is_banned):
+    # This IS a proposition: (in_stock AND has_payment_method) AND NOT is_banned
+    return in_stock and has_payment_method and not is_banned
+
+print(can_checkout(True, True, False))   # True
+print(can_checkout(True, False, False))  # False`
+},
+{
+  id:'sets', num:'02', title:'Set Theory',
+  tagline:'Collections with no duplicates and no order — the backbone of databases, deduplication, and permissions.',
+  explanation:`A set is an unordered collection of distinct elements. The core operations — union (∪), intersection (∩), difference (−), and symmetric difference (△) — describe how to combine or compare two collections without caring about order or repeats.`,
+  csUse:[
+    ['Deduplication', 'Turning a list into a <b>set()</b> removes duplicates in one line — used constantly in data cleaning.'],
+    ['Database joins', 'SQL <b>INTERSECT</b>, <b>UNION</b>, and <b>EXCEPT</b> are set operations executed on rows.'],
+    ['Access control', 'A user\'s permissions are the <b>union</b> of their role\'s permissions and any extra grants.'],
+    ['Recommendation systems', 'Finding common interests between two users is a set <b>intersection</b>.'],
+  ],
+  demo:'sets',
+  code:`# Set theory → Python's built-in set type
+# Sets model "distinct items, order doesn't matter" directly.
+
+readers_book_a = {"amina", "farhan", "zara", "hamza"}
+readers_book_b = {"zara", "hamza", "sana", "omar"}
+
+# Union: everyone who read at least one book
+print("Union:", readers_book_a | readers_book_b)
+
+# Intersection: readers who read BOTH books
+print("Intersection:", readers_book_a & readers_book_b)
+
+# Difference: read book A but NOT book B
+print("Only book A:", readers_book_a - readers_book_b)
+
+# Symmetric difference: read exactly one of the two
+print("Exactly one book:", readers_book_a ^ readers_book_b)
+
+# --- Where this shows up in real code ---
+def deduplicate(user_ids: list) -> list:
+    """Common data-cleaning step before writing to a database."""
+    return list(set(user_ids))
+
+raw_ids = [4, 7, 4, 9, 7, 7, 12]
+print(deduplicate(raw_ids))  # [4, 7, 9, 12] (order not guaranteed)`
+},
+{
+  id:'relations', num:'03', title:'Relations & Functions',
+  tagline:'How elements connect to each other — equivalence classes, partial orders, and every foreign key you\'ve written.',
+  explanation:`A relation on a set is just a collection of ordered pairs describing which elements are "related." Three properties decide what kind of structure it forms: <b style="color:var(--amber)">reflexive</b> (every element relates to itself), <b style="color:var(--amber)">symmetric</b> (a~b implies b~a), and <b style="color:var(--amber)">transitive</b> (a~b and b~c implies a~c). Reflexive + symmetric + transitive = an <em>equivalence relation</em>, which partitions a set into disjoint groups.`,
+  csUse:[
+    ['Database schemas', 'A foreign key is literally a relation between two tables\' rows.'],
+    ['Equivalence classes', 'Grouping users "in the same timezone" or files "with the same hash" partitions data using equivalence relations.'],
+    ['Dependency graphs', 'Build systems and package managers use relations ("depends on") that must stay transitive and acyclic.'],
+    ['Functions', 'Every function you write is a special relation — one where each input maps to exactly one output.'],
+  ],
+  demo:'relations',
+  code:`# Relations → adjacency-style data, exactly like the grid in the demo
+# Checking reflexive / symmetric / transitive programmatically.
+
+def is_reflexive(R, elements):
+    return all((a, a) in R for a in elements)
+
+def is_symmetric(R):
+    return all((b, a) in R for (a, b) in R)
+
+def is_transitive(R):
+    return all((a, c) in R for (a, b1) in R for (b2, c) in R if b1 == b2)
+
+elements = {1, 2, 3, 4}
+# "congruent mod 2" relation: a ~ b if a and b have the same parity
+R = {(a, b) for a in elements for b in elements if a % 2 == b % 2}
+
+print("Reflexive:", is_reflexive(R, elements))
+print("Symmetric:", is_symmetric(R))
+print("Transitive:", is_transitive(R))
+# All True -> this is an EQUIVALENCE RELATION, so it partitions the set
+
+# --- Partition into equivalence classes ---
+def equivalence_classes(R, elements):
+    classes = []
+    seen = set()
+    for a in elements:
+        if a in seen:
+            continue
+        cls = {b for b in elements if (a, b) in R}
+        classes.append(cls)
+        seen |= cls
+    return classes
+
+print("Classes:", equivalence_classes(R, elements))  # odds / evens`
+},
+{
+  id:'graphs', num:'04', title:'Graph Theory',
+  tagline:'Nodes and edges — maps, networks, social graphs, and every "find the shortest path" interview question.',
+  explanation:`A graph is a set of nodes (vertices) connected by edges. Graphs model anything with connections: road networks, social networks, web pages and links, dependency chains. Traversal algorithms like <b style="color:var(--teal)">BFS</b> (breadth-first, explores nearest nodes first) and <b style="color:var(--teal)">DFS</b> (depth-first, explores as far as possible before backtracking) are the foundation almost every graph algorithm builds on.`,
+  csUse:[
+    ['Routing & maps', 'GPS shortest-path (Dijkstra, A*) is BFS with weighted edges.'],
+    ['Social networks', '"People you may know" and "degrees of separation" are graph-traversal problems.'],
+    ['Dependency resolution', 'npm/pip installing packages in the right order uses a <b>topological sort</b> on a dependency graph.'],
+    ['Web crawling', 'A crawler doing BFS from a homepage discovers pages level by level, exactly like the demo below.'],
+  ],
+  demo:'graphs',
+  code:`# Graph theory → adjacency list + BFS / DFS
+from collections import deque
+
+graph = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D'],
+    'C': ['A', 'D', 'F'],
+    'D': ['B', 'C', 'E'],
+    'E': ['D', 'F'],
+    'F': ['C', 'E'],
+}
+
+def bfs(graph, start):
+    """Explore nearest nodes first -> shortest path in unweighted graphs."""
+    visited, order, queue = {start}, [], deque([start])
+    while queue:
+        node = queue.popleft()
+        order.append(node)
+        for neighbor in sorted(graph[node]):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append(neighbor)
+    return order
+
+def dfs(graph, start, visited=None, order=None):
+    """Go as deep as possible before backtracking."""
+    if visited is None:
+        visited, order = {start}, []
+    order.append(start)
+    for neighbor in sorted(graph[start]):
+        if neighbor not in visited:
+            visited.add(neighbor)
+            dfs(graph, neighbor, visited, order)
+    return order
+
+print("BFS from A:", bfs(graph, 'A'))
+print("DFS from A:", dfs(graph, 'A'))`
+},
+{
+  id:'combinatorics', num:'05', title:'Combinatorics',
+  tagline:'Counting without listing — Big-O reasoning, test-case explosion, and cryptographic key spaces.',
+  explanation:`Combinatorics answers "how many ways?" without brute-forcing every possibility. <b style="color:var(--amber)">Permutations</b> (nPr) count ordered arrangements; <b style="color:var(--amber)">combinations</b> (nCr) count unordered selections. The counting principles here are exactly how you reason about an algorithm's complexity before running it.`,
+  csUse:[
+    ['Complexity analysis', 'Counting how many states a loop visits is combinatorics — it\'s where Big-O numbers come from.'],
+    ['Test coverage', 'N independent boolean feature flags create 2^N combinations to test — combinatorics tells you the blast radius.'],
+    ['Cryptography', 'A password/key\'s strength is measured by the size of its combinatorial search space.'],
+    ['Probability & ML', 'Sampling without replacement, hyperparameter grids, and shuffling are all combinatorial operations.'],
+  ],
+  demo:'combinatorics',
+  code:`# Combinatorics → itertools does the counting for you
+from itertools import permutations, combinations
+from math import comb, perm
+
+n, r = 5, 2
+
+print(f"P({n},{r}) = {perm(n, r)}")   # ordered arrangements
+print(f"C({n},{r}) = {comb(n, r)}")   # unordered selections
+
+# --- Where this shows up in real code ---
+# 1) Generating test cases for N independent boolean flags
+flags = ['dark_mode', 'beta_search', 'new_checkout']
+from itertools import product
+all_combinations = list(product([False, True], repeat=len(flags)))
+print(f"{len(flags)} flags -> {len(all_combinations)} test cases to cover")
+# 2^3 = 8 -- this grows FAST, which is why combinatorics matters for testing
+
+# 2) Password search space (why length beats cleverness)
+import string
+charset_size = len(string.ascii_letters + string.digits)  # 62
+for length in (4, 8, 12):
+    print(f"length {length}: {charset_size**length:,} possible passwords")`
+},
+{
+  id:'numbertheory', num:'06', title:'Number Theory',
+  tagline:'GCD, modular arithmetic, and primes — the math underneath hashing, RSA encryption, and clock-style wraparound.',
+  explanation:`Number theory studies integers and their relationships: divisibility, greatest common divisor (GCD), modular arithmetic ("clock math," where numbers wrap around), and prime numbers. It sounds abstract until you realize <b style="color:var(--teal)">modular arithmetic is a hash table's bucket assignment</b>, and <b style="color:var(--teal)">large primes are what makes RSA encryption hard to break</b>.`,
+  csUse:[
+    ['Hashing', 'hash(key) % table_size uses modular arithmetic to place items into buckets.'],
+    ['Cryptography', 'RSA encryption is built entirely on modular exponentiation and the difficulty of factoring large primes.'],
+    ['Cyclic structures', 'Circular buffers, round-robin scheduling, and clock arithmetic all use mod.'],
+    ['Checksums', 'ISBNs, credit card numbers (Luhn), and CRC checks use modular arithmetic to catch errors.'],
+  ],
+  demo:'numbertheory',
+  code:`# Number theory → gcd, modular arithmetic, primality
+import math
+
+# 1) GCD via the Euclidean algorithm (the ORIGINAL discrete algorithm, ~300 BC)
+def gcd_steps(a, b):
+    while b:
+        print(f"  gcd({a}, {b}) -> gcd({b}, {a % b})")
+        a, b = b, a % b
+    return a
+
+print("GCD(48, 18):", gcd_steps(48, 18))
+
+# 2) Modular arithmetic -> hash bucket assignment
+def bucket(key: str, num_buckets: int) -> int:
+    return sum(ord(c) for c in key) % num_buckets
+
+for name in ["alice", "bob", "carol"]:
+    print(f"{name} -> bucket {bucket(name, 8)}")
+
+# 3) Primality test (trial division up to sqrt(n))
+def is_prime(n):
+    if n < 2:
+        return False
+    for i in range(2, int(math.isqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+print([n for n in range(2, 50) if is_prime(n)])  # primes < 50
+
+# 4) A tiny RSA-style demo with small numbers (NOT secure -- illustrative only)
+p, q = 61, 53
+n = p * q
+phi = (p - 1) * (q - 1)
+e = 17  # public exponent
+d = pow(e, -1, phi)  # private exponent (modular inverse)
+message = 42
+cipher = pow(message, e, n)
+decrypted = pow(cipher, d, n)
+print(f"message={message} -> cipher={cipher} -> decrypted={decrypted}")`
+},
+{
+  id:'boolean', num:'07', title:'Boolean Algebra & Logic Gates',
+  tagline:'AND/OR/NOT as circuits — the physical layer under permissions, flags, and every CPU instruction.',
+  explanation:`Boolean algebra is propositional logic wearing an engineer's hat: instead of "true/false" we say <b style="color:var(--amber)">1/0</b>, and instead of sentences we build <b style="color:var(--amber)">gates</b> (AND, OR, NOT, XOR, NAND). Chain enough gates together and you get an adder, a CPU, a computer. The same operators (<code>&amp; | ^ ~</code>) also let you pack multiple flags into a single integer.`,
+  csUse:[
+    ['Permission flags', 'Unix file permissions (rwx) and feature bitmasks use <b>&</b>, <b>|</b>, and <b>~</b> to set/check/clear bits.'],
+    ['CPU design', 'An ALU (arithmetic logic unit) is a physical arrangement of logic gates evaluating boolean algebra.'],
+    ['Image & color processing', 'Blending modes and masks are bitwise boolean operations on pixel values.'],
+    ['Compiler optimization', 'Boolean algebra laws (De Morgan\'s, absorption) are used to simplify conditions the compiler generates.'],
+  ],
+  demo:'boolean',
+  code:`# Boolean algebra -> Python's bitwise operators
+# & = AND   | = OR   ^ = XOR   ~ = NOT
+
+READ    = 0b100  # 4
+WRITE   = 0b010  # 2
+EXECUTE = 0b001  # 1
+
+# Grant read + write (OR combines flags)
+permissions = READ | WRITE
+print(f"permissions = {permissions:03b}")
+
+# Check if WRITE is granted (AND isolates a bit)
+has_write = bool(permissions & WRITE)
+print("has_write:", has_write)
+
+# Revoke WRITE (AND with the complement)
+permissions = permissions & ~WRITE
+print(f"after revoke = {permissions:03b}")
+
+# Toggle EXECUTE (XOR flips a bit)
+permissions ^= EXECUTE
+print(f"after toggle = {permissions:03b}")
+
+# --- A logic gate simulator (same idea as the demo circuit) ---
+def gate(op, a, b):
+    return {
+        'AND':  a & b,
+        'OR':   a | b,
+        'XOR':  a ^ b,
+        'NAND': int(not (a & b)),
+        'NOR':  int(not (a | b)),
+    }[op]
+
+for op in ['AND', 'OR', 'XOR', 'NAND', 'NOR']:
+    row = [gate(op, a, b) for a in (0, 1) for b in (0, 1)]
+    print(f"{op:>4}: {row}")`
+},
+{
+  id:'recursion', num:'08', title:'Recursion & Induction',
+  tagline:'Solving a problem by trusting a smaller version of itself — recursive algorithms, and how to prove they\'re correct.',
+  explanation:`Mathematical induction proves a statement for <b style="color:var(--amber)">all</b> natural numbers by proving a base case, then showing "if it holds for n, it holds for n+1." Recursion is that same idea turned into code: a base case that stops the recursion, and a recursive case that trusts a smaller call to be correct. Every recursive function you'll ever debug is secretly an inductive proof.`,
+  csUse:[
+    ['Recursive algorithms', 'Tree traversal, merge sort, quicksort, and graph DFS are all built on the recursive pattern.'],
+    ['Correctness proofs', 'Loop invariants and recursive correctness proofs use the exact same base-case/inductive-step structure.'],
+    ['Compilers & parsers', 'Recursive descent parsers (like the expression parser used in the Logic demo) mirror a grammar\'s own recursive definition.'],
+    ['Data structures', 'Linked lists, trees, and JSON are naturally recursive — defined in terms of smaller versions of themselves.'],
+  ],
+  demo:'recursion',
+  code:`# Recursion -> the code form of induction
+# Base case = the thing you can prove directly.
+# Recursive case = "trust" the smaller call, like the inductive step.
+
+def factorial(n, depth=0):
+    indent = "  " * depth
+    print(f"{indent}factorial({n})")
+    if n == 0:                      # base case
+        print(f"{indent}-> 1")
+        return 1
+    result = n * factorial(n - 1, depth + 1)   # recursive case
+    print(f"{indent}-> {result}")
+    return result
+
+factorial(4)
+
+# --- Fibonacci: naive recursion vs memoized (why induction depth matters) ---
+calls = 0
+def fib_naive(n):
+    global calls
+    calls += 1
+    if n <= 1:
+        return n
+    return fib_naive(n - 1) + fib_naive(n - 2)
+
+calls = 0
+print("fib(20) =", fib_naive(20), "using", calls, "calls (exponential!)")
+
+from functools import lru_cache
+@lru_cache(maxsize=None)
+def fib_memo(n):
+    if n <= 1:
+        return n
+    return fib_memo(n - 1) + fib_memo(n - 2)
+
+print("fib(20) memoized =", fib_memo(20), "-- linear time")`
+},
+{
+  id:'trees', num:'09', title:'Trees',
+  tagline:'Hierarchies with no cycles — file systems, the DOM, parse trees, and every "fast lookup" database index.',
+  explanation:`A tree is a connected graph with no cycles: one root, and every other node has exactly one parent. A <b style="color:var(--teal)">binary search tree</b> keeps smaller values to the left and larger values to the right of every node, which makes search, insert, and delete all run in roughly <b style="color:var(--amber)">O(log n)</b> time on a balanced tree — instead of scanning a whole list.`,
+  csUse:[
+    ['File systems', 'Folders containing folders containing files is a literal tree — <b>ls -R</b> is a tree traversal.'],
+    ['The DOM', 'Every webpage is a tree of nested HTML elements; the browser walks it to render and re-render.'],
+    ['Databases', 'B-trees and B+ trees are what make indexed lookups fast instead of scanning every row.'],
+    ['Parsers & compilers', 'Source code is parsed into an Abstract Syntax Tree (AST) before it can be compiled or interpreted.'],
+  ],
+  demo:'trees',
+  code:`# Trees -> a Binary Search Tree (BST) implementation
+
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+class BST:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, value):
+        if self.root is None:
+            self.root = Node(value)
+        else:
+            self._insert(self.root, value)
+
+    def _insert(self, node, value):
+        if value < node.value:
+            if node.left is None:
+                node.left = Node(value)
+            else:
+                self._insert(node.left, value)
+        elif value > node.value:
+            if node.right is None:
+                node.right = Node(value)
+            else:
+                self._insert(node.right, value)
+
+    def inorder(self, node=None, out=None):
+        if out is None:
+            out, node = [], self.root
+        if node:
+            self.inorder(node.left, out)
+            out.append(node.value)
+            self.inorder(node.right, out)
+        return out
+
+    def search(self, value):
+        node = self.root
+        while node:
+            if value == node.value:
+                return True
+            node = node.left if value < node.value else node.right
+        return False
+
+tree = BST()
+for v in [8, 3, 10, 1, 6, 14, 4, 7]:
+    tree.insert(v)
+
+print("In-order traversal (always sorted!):", tree.inorder())
+print("Search for 6:", tree.search(6))
+print("Search for 99:", tree.search(99))`
+},
+];
+
+/* ================= SIDEBAR ================= */
+const topicList = document.getElementById('topicList');
+topics.forEach(t=>{
+  const btn = document.createElement('button');
+  btn.className = 'topic-btn';
+  btn.id = 'nav-'+t.id;
+  btn.innerHTML = `<span class="tnum">${t.num}</span><span>${t.title}</span>`;
+  btn.onclick = ()=> selectTopic(t.id);
+  topicList.appendChild(btn);
+});
+
+function selectTopic(id){
+  document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-'+id).classList.add('active');
+  const t = topics.find(x=>x.id===id);
+  renderTopic(t);
+  window.scrollTo({top: document.querySelector('.app').offsetTop - 10, behavior:'smooth'});
+}
+
+function renderTopic(t){
+  const content = document.getElementById('content');
+  const codeId = 'code-'+t.id;
+  content.innerHTML = `
+    <div class="topic-eyebrow">Topic ${t.num} / 09</div>
+    <h2 class="topic-title">${t.title}</h2>
+    <p class="topic-tagline">${t.tagline}</p>
+
+    <div class="card-row">
+      <div class="card">
+        <h3>What it is</h3>
+        <p>${t.explanation}</p>
+      </div>
+      <div class="card">
+        <h3>Where you'll use it in CS</h3>
+        <ul>${t.csUse.map(([label,text])=>`<li><b>${label}.</b> ${text}</li>`).join('')}</ul>
+      </div>
+    </div>
+
+    <div class="section-label">Try it</div>
+    <div class="demo-box" id="demoMount"></div>
+
+    <div class="section-label">Take the code with you</div>
+    <div class="code-box">
+      <div class="code-head">
+        <span>python · ${t.id}.py</span>
+        <button class="copy-btn" onclick="copyCode(this,'${codeId}')">Copy</button>
+      </div>
+      <pre id="${codeId}" data-raw="${esc(t.code).replace(/"/g,'&quot;')}"><code>${highlightPy(t.code)}</code></pre>
+    </div>
+  `;
+  const mount = document.getElementById('demoMount');
+  DEMOS[t.demo](mount);
+}
+
+/* ================= DEMOS ================= */
+const DEMOS = {};
+
+/* ---- 1. Propositional logic ---- */
+DEMOS.logic = function(mount){
+  mount.innerHTML = `
+    <div class="field">
+      <label class="small" for="logicInput">Expression &nbsp; (use letters, ! & | ^ -> <->, and parentheses)</label>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <input type="text" id="logicInput" value="p & q | !r" style="flex:1; min-width:220px;">
+        <button class="btn primary" onclick="runLogic()">Build truth table</button>
+      </div>
+      <div class="hint">Try: <code>p -&gt; q</code>, <code>p &lt;-&gt; q</code>, <code>(p &amp; q) | (!p &amp; !q)</code></div>
+    </div>
+    <div id="logicError" style="color:var(--red); font-family:var(--font-mono); font-size:13px; margin:10px 0; display:none;"></div>
+    <div id="logicTableWrap"></div>
+  `;
+  document.getElementById('logicInput').addEventListener('keydown', e=>{ if(e.key==='Enter') runLogic(); });
+  runLogic();
+};
+
+function tokenizeExpr(str){
+  const tokens=[]; let i=0;
+  while(i<str.length){
+    const c=str[i];
+    if(c===' '||c==='\\t'){i++;continue;}
+    if(/[a-z]/i.test(c)){tokens.push({type:'VAR',value:c.toLowerCase()});i++;continue;}
+    if(c==='!'||c==='~'){tokens.push({type:'NOT'});i++;continue;}
+    if(c==='&'){tokens.push({type:'AND'});i++;continue;}
+    if(c==='|'){tokens.push({type:'OR'});i++;continue;}
+    if(c==='^'){tokens.push({type:'XOR'});i++;continue;}
+    if(c==='-'&&str[i+1]==='>'){tokens.push({type:'IMPLIES'});i+=2;continue;}
+    if(c==='<'&&str[i+1]==='-'&&str[i+2]==='>'){tokens.push({type:'IFF'});i+=3;continue;}
+    if(c==='('){tokens.push({type:'LPAREN'});i++;continue;}
+    if(c===')'){tokens.push({type:'RPAREN'});i++;continue;}
+    throw new Error('Unexpected character: "'+c+'"');
+  }
+  return tokens;
+}
+function parseExpr(tokens){
+  let pos=0;
+  const peek=()=>tokens[pos];
+  const next=()=>tokens[pos++];
+  const expect=(type)=>{ if(!peek()||peek().type!==type) throw new Error('Expected '+type+' near position '+pos); return next(); };
+  function parseIff(){ let left=parseImplies(); while(peek()&&peek().type==='IFF'){next(); left={type:'IFF',left,right:parseImplies()};} return left; }
+  function parseImplies(){ let left=parseOr(); while(peek()&&peek().type==='IMPLIES'){next(); left={type:'IMPLIES',left,right:parseOr()};} return left; }
+  function parseOr(){ let left=parseXor(); while(peek()&&peek().type==='OR'){next(); left={type:'OR',left,right:parseXor()};} return left; }
+  function parseXor(){ let left=parseAnd(); while(peek()&&peek().type==='XOR'){next(); left={type:'XOR',left,right:parseAnd()};} return left; }
+  function parseAnd(){ let left=parseNot(); while(peek()&&peek().type==='AND'){next(); left={type:'AND',left,right:parseNot()};} return left; }
+  function parseNot(){ if(peek()&&peek().type==='NOT'){next(); return {type:'NOT',expr:parseNot()};} return parseAtom(); }
+  function parseAtom(){
+    const t=peek();
+    if(!t) throw new Error('Unexpected end of expression');
+    if(t.type==='VAR'){next(); return {type:'VAR',name:t.value};}
+    if(t.type==='LPAREN'){next(); const e=parseIff(); expect('RPAREN'); return e;}
+    throw new Error('Unexpected token near position '+pos);
+  }
+  const result=parseIff();
+  if(pos<tokens.length) throw new Error('Unexpected trailing input');
+  return result;
+}
+function collectVars(node,set){
+  if(!node) return set;
+  if(node.type==='VAR'){set.add(node.name); return set;}
+  if(node.type==='NOT'){collectVars(node.expr,set); return set;}
+  collectVars(node.left,set); collectVars(node.right,set);
+  return set;
+}
+function evalExpr(node,env){
+  switch(node.type){
+    case 'VAR': return env[node.name];
+    case 'NOT': return !evalExpr(node.expr,env);
+    case 'AND': return evalExpr(node.left,env) && evalExpr(node.right,env);
+    case 'OR': return evalExpr(node.left,env) || evalExpr(node.right,env);
+    case 'XOR': return evalExpr(node.left,env) !== evalExpr(node.right,env);
+    case 'IMPLIES': return (!evalExpr(node.left,env)) || evalExpr(node.right,env);
+    case 'IFF': return evalExpr(node.left,env) === evalExpr(node.right,env);
+  }
+}
+function runLogic(){
+  const input = document.getElementById('logicInput').value.trim();
+  const errBox = document.getElementById('logicError');
+  const wrap = document.getElementById('logicTableWrap');
+  try{
+    const ast = parseExpr(tokenizeExpr(input));
+    const vars = [...collectVars(ast,new Set())].sort();
+    if(vars.length===0) throw new Error('Enter at least one variable (a-z)');
+    if(vars.length>5) throw new Error('Max 5 variables for a readable table');
+    errBox.style.display='none';
+    const n = vars.length;
+    let rows = '';
+    for(let m=0;m<(1<<n);m++){
+      const env={};
+      vars.forEach((v,idx)=>{ env[v]=Boolean((m>>(n-1-idx))&1); });
+      const result = evalExpr(ast, env);
+      rows += `<tr class="${result?'hi':''}">` +
+        vars.map(v=>`<td class="${env[v]?'true':'false'}">${env[v]?'T':'F'}</td>`).join('') +
+        `<td class="${result?'true':'false'}" style="font-weight:600;">${result?'T':'F'}</td></tr>`;
+    }
+    wrap.innerHTML = `<table class="tt"><thead><tr>${vars.map(v=>`<th>${v}</th>`).join('')}<th>result</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }catch(e){
+    errBox.style.display='block';
+    errBox.textContent = 'Parse error: ' + e.message;
+    wrap.innerHTML='';
+  }
+}
+
+/* ---- 2. Sets ---- */
+DEMOS.sets = function(mount){
+  mount.innerHTML = `
+    <div class="grid-2">
+      <div class="field">
+        <label class="small" for="setA">Set A (comma separated)</label>
+        <input type="text" id="setA" style="width:100%;" value="1,2,3,4,5">
+      </div>
+      <div class="field">
+        <label class="small" for="setB">Set B (comma separated)</label>
+        <input type="text" id="setB" style="width:100%;" value="3,4,5,6,7">
+      </div>
+    </div>
+    <div id="setResults"></div>
+  `;
+  ['setA','setB'].forEach(id=> document.getElementById(id).addEventListener('input', runSets));
+  runSets();
+};
+function parseSet(str){
+  return new Set(str.split(',').map(s=>s.trim()).filter(Boolean));
+}
+function runSets(){
+  const A = parseSet(document.getElementById('setA').value);
+  const B = parseSet(document.getElementById('setB').value);
+  const union = new Set([...A,...B]);
+  const inter = new Set([...A].filter(x=>B.has(x)));
+  const diffAB = new Set([...A].filter(x=>!B.has(x)));
+  const diffBA = new Set([...B].filter(x=>!A.has(x)));
+  const symdiff = new Set([...diffAB,...diffBA]);
+  const chips = s => s.size ? [...s].map(x=>`<span class="chip">${esc(x)}</span>`).join('') : '<span style="color:var(--text-faint); font-family:var(--font-mono); font-size:12.5px;">∅ empty</span>';
+  document.getElementById('setResults').innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr; gap:16px; margin-top:6px;">
+      <div><label class="small">A ∪ B — union</label><div>${chips(union)}</div></div>
+      <div><label class="small">A ∩ B — intersection</label><div>${chips(inter)}</div></div>
+      <div><label class="small">A − B — in A only</label><div>${chips(diffAB)}</div></div>
+      <div><label class="small">B − A — in B only</label><div>${chips(diffBA)}</div></div>
+      <div><label class="small">A △ B — symmetric difference</label><div>${chips(symdiff)}</div></div>
+    </div>
+  `;
+}
+
+/* ---- 3. Relations ---- */
+let relMatrix = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+DEMOS.relations = function(mount){
+  mount.innerHTML = `
+    <p style="margin-top:0; font-size:13.5px; color:var(--text-muted);">Relation R on {1, 2, 3, 4}. Click cells to toggle whether <span style="color:var(--amber)">i R j</span> holds, or load a preset.</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn" onclick="loadRelPreset('le')">Load ≤</button>
+      <button class="btn" onclick="loadRelPreset('mod2')">Load ≡ mod 2</button>
+      <button class="btn" onclick="loadRelPreset('divides')">Load divides</button>
+      <button class="btn" onclick="loadRelPreset('clear')">Clear</button>
+    </div>
+    <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;">
+      <div id="relGrid"></div>
+      <div style="flex:1; min-width:220px;">
+        <div id="relBadges" style="margin-bottom:16px;"></div>
+        <svg id="relSvg" viewBox="0 0 220 220" style="width:220px; height:220px; overflow:visible;"></svg>
+      </div>
+    </div>
+  `;
+  renderRelGrid(); computeRel();
+};
+function renderRelGrid(){
+  const el = document.getElementById('relGrid');
+  let html = '<table class="tt" style="width:auto;"><thead><tr><th></th>' + [1,2,3,4].map(j=>`<th>${j}</th>`).join('') + '</tr></thead><tbody>';
+  for(let i=0;i<4;i++){
+    html += `<tr><th>${i+1}</th>`;
+    for(let j=0;j<4;j++){
+      const on = relMatrix[i][j];
+      html += `<td style="cursor:pointer; ${on?'background:rgba(95,217,203,0.18); color:var(--teal);':''}" onclick="toggleRel(${i},${j})">${on?'1':'0'}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+function toggleRel(i,j){ relMatrix[i][j] = relMatrix[i][j]?0:1; renderRelGrid(); computeRel(); }
+function loadRelPreset(kind){
+  for(let i=0;i<4;i++) for(let j=0;j<4;j++){
+    if(kind==='le') relMatrix[i][j] = (i<=j)?1:0;
+    else if(kind==='mod2') relMatrix[i][j] = ((i%2)===(j%2))?1:0;
+    else if(kind==='divides') relMatrix[i][j] = ((j+1)%(i+1)===0)?1:0;
+    else relMatrix[i][j] = 0;
+  }
+  renderRelGrid(); computeRel();
+}
+function computeRel(){
+  const n=4;
+  const has=(i,j)=>!!relMatrix[i][j];
+  let reflexive=true, symmetric=true, antisymmetric=true, transitive=true;
+  for(let i=0;i<n;i++) if(!has(i,i)) reflexive=false;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) if(has(i,j)!==has(j,i)) symmetric=false;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) if(i!==j && has(i,j) && has(j,i)) antisymmetric=false;
+  outer:
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) if(has(i,j)) for(let k=0;k<n;k++) if(has(j,k) && !has(i,k)){ transitive=false; break outer; }
+  const isEquivalence = reflexive && symmetric && transitive;
+  const isPartialOrder = reflexive && antisymmetric && transitive;
+  const badge = (label, ok)=>`<span class="badge ${ok?'pass':'fail'}"><span class="dot"></span>${label}</span>`;
+  document.getElementById('relBadges').innerHTML = `
+    ${badge('Reflexive', reflexive)}${badge('Symmetric', symmetric)}${badge('Antisymmetric', antisymmetric)}${badge('Transitive', transitive)}<br>
+    ${isEquivalence?badge('Equivalence relation ✓', true):''}
+    ${isPartialOrder?badge('Partial order ✓', true):''}
+  `;
+  // draw directed graph on a 4-node square
+  const pts = [[110,20],[200,110],[110,200],[20,110]];
+  let svg = '';
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    if(!has(i,j) || i===j) continue;
+    const [x1,y1]=pts[i], [x2,y2]=pts[j];
+    const dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy);
+    const ux=dx/len, uy=dy/len;
+    const sx=x1+ux*16, sy=y1+uy*16, ex=x2-ux*16, ey=y2-uy*16;
+    svg += `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="#5FD9CB" stroke-width="1.5" marker-end="url(#relArrow)" opacity="0.8"/>`;
+  }
+  for(let i=0;i<n;i++){
+    if(has(i,i)){
+      const [x,y]=pts[i];
+      const lx = x<110? x-26 : x+26;
+      svg += `<circle cx="${lx}" cy="${y-18}" r="10" fill="none" stroke="#E8A33D" stroke-width="1.5"/>`;
+    }
+  }
+  pts.forEach(([x,y],idx)=>{
+    svg += `<circle cx="${x}" cy="${y}" r="16" fill="#1C2438" stroke="#2A3448"/>`;
+    svg += `<text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="#ECE9E0">${idx+1}</text>`;
+  });
+  document.getElementById('relSvg').innerHTML = `
+    <defs><marker id="relArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5FD9CB"/></marker></defs>
+    ${svg}`;
+}
+
+/* ---- 4. Combinatorics ---- */
+DEMOS.combinatorics = function(mount){
+  mount.innerHTML = `
+    <div class="grid-2">
+      <div class="field">
+        <label class="small" for="combN">n (total items)</label>
+        <input type="number" id="combN" value="6" min="0" max="30" style="width:100%;">
+      </div>
+      <div class="field">
+        <label class="small" for="combR">r (choose)</label>
+        <input type="number" id="combR" value="2" min="0" max="30" style="width:100%;">
+      </div>
+    </div>
+    <div id="combResults" class="card" style="margin-top:8px;"></div>
+    <div class="hint" style="margin-top:14px;">Real-world framing: with <b id="flagCount">6</b> independent test flags, you'd need <b id="flagCombos">64</b> test cases to cover every on/off combination.</div>
+  `;
+  ['combN','combR'].forEach(id=>document.getElementById(id).addEventListener('input', runComb));
+  runComb();
+};
+function factBig(n){ let r=1n; for(let i=2n;i<=BigInt(n);i++) r*=i; return r; }
+function runComb(){
+  let n = parseInt(document.getElementById('combN').value)||0;
+  let r = parseInt(document.getElementById('combR').value)||0;
+  n = Math.max(0, Math.min(30,n)); r = Math.max(0, Math.min(30,r));
+  const out = document.getElementById('combResults');
+  if(r>n){
+    out.innerHTML = `<p style="color:var(--red); margin:0;">r cannot be greater than n.</p>`;
+  } else {
+    const nPr = factBig(n) / factBig(n-r);
+    const nCr = nPr / factBig(r);
+    out.innerHTML = `
+      <p style="margin:0 0 8px;"><span class="chip">P(${n},${r}) = ${nPr.toString()}</span> ordered arrangements</p>
+      <p style="margin:0;"><span class="chip">C(${n},${r}) = ${nCr.toString()}</span> unordered selections</p>
+    `;
+  }
+  document.getElementById('flagCount').textContent = n;
+  document.getElementById('flagCombos').textContent = n<=60 ? (2n**BigInt(n)).toString() : 'astronomically many';
+}
+
+/* ---- 5. Graphs ---- */
+const GRAPH = {
+  nodes: {A:[60,40], B:[180,30], C:[40,140], D:[170,150], E:[280,110], F:[300,40]},
+  edges: [['A','B'],['A','C'],['B','D'],['C','D'],['D','E'],['E','F'],['C','F']],
+};
+function graphAdj(){
+  const adj = {}; Object.keys(GRAPH.nodes).forEach(k=>adj[k]=[]);
+  GRAPH.edges.forEach(([a,b])=>{ adj[a].push(b); adj[b].push(a); });
+  Object.values(adj).forEach(list=>list.sort());
+  return adj;
+}
+DEMOS.graphs = function(mount){
+  mount.innerHTML = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+      <button class="btn primary" onclick="runGraphTraversal('bfs')">Run BFS from A</button>
+      <button class="btn primary" onclick="runGraphTraversal('dfs')">Run DFS from A</button>
+      <button class="btn" onclick="resetGraph()">Reset</button>
+    </div>
+    <svg id="graphSvg" viewBox="0 0 340 190" style="width:100%; max-width:420px; height:auto;"></svg>
+    <div id="graphOrder" style="margin-top:14px; font-family:var(--font-mono); font-size:13.5px; color:var(--text-muted);"></div>
+  `;
+  resetGraph();
+};
+function drawGraph(highlighted, activeEdges){
+  highlighted = highlighted || [];
+  activeEdges = activeEdges || [];
+  let svg = '';
+  GRAPH.edges.forEach(([a,b])=>{
+    const [x1,y1]=GRAPH.nodes[a], [x2,y2]=GRAPH.nodes[b];
+    const isActive = activeEdges.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a));
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isActive?'#E8A33D':'#2A3448'}" stroke-width="${isActive?2.5:1.5}"/>`;
+  });
+  Object.entries(GRAPH.nodes).forEach(([k,[x,y]])=>{
+    const on = highlighted.includes(k);
+    svg += `<circle cx="${x}" cy="${y}" r="17" fill="${on?'#5FD9CB':'#1C2438'}" stroke="${on?'#5FD9CB':'#2A3448'}" stroke-width="2"/>`;
+    svg += `<text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="${on?'#0B0F19':'#ECE9E0'}">${k}</text>`;
+  });
+  document.getElementById('graphSvg').innerHTML = svg;
+}
+function resetGraph(){ drawGraph([]); document.getElementById('graphOrder').textContent=''; }
+function runGraphTraversal(kind){
+  const adj = graphAdj();
+  let order = [];
+  if(kind==='bfs'){
+    const visited=new Set(['A']); const queue=['A'];
+    while(queue.length){
+      const cur = queue.shift(); order.push(cur);
+      for(const nb of adj[cur]) if(!visited.has(nb)){ visited.add(nb); queue.push(nb); }
+    }
+  } else {
+    const visited=new Set();
+    (function dfs(node){ visited.add(node); order.push(node); for(const nb of adj[node]) if(!visited.has(nb)) dfs(nb); })('A');
+  }
+  document.getElementById('graphOrder').textContent = kind.toUpperCase()+' order: ' + order.join(' → ');
+  order.forEach((node,i)=>{
+    setTimeout(()=>{
+      drawGraph(order.slice(0,i+1));
+    }, i*450);
+  });
+}
+
+/* ---- 6. Number theory ---- */
+DEMOS.numbertheory = function(mount){
+  mount.innerHTML = `
+    <div class="section-label" style="margin-top:0;">GCD — Euclidean algorithm</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+      <div><label class="small">a</label><br><input type="number" id="gcdA" value="48" style="width:100px;"></div>
+      <div><label class="small">b</label><br><input type="number" id="gcdB" value="18" style="width:100px;"></div>
+      <button class="btn primary" onclick="runGcd()">Compute</button>
+    </div>
+    <div id="gcdSteps" style="margin-top:10px; font-family:var(--font-mono); font-size:13px; color:var(--text-muted);"></div>
+
+    <div class="section-label">Modular clock</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px;">
+      <div><label class="small">value</label><br><input type="number" id="modA" value="14" style="width:100px;"></div>
+      <div><label class="small">mod n</label><br><input type="number" id="modN" value="12" min="2" max="24" style="width:100px;"></div>
+      <button class="btn primary" onclick="runMod()">Show</button>
+    </div>
+    <svg id="modSvg" viewBox="0 0 160 160" style="width:160px; height:160px;"></svg>
+    <div id="modResult" style="font-family:var(--font-mono); font-size:13px; color:var(--text-muted); margin-top:6px;"></div>
+
+    <div class="section-label">Primality check</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+      <div><label class="small">n</label><br><input type="number" id="primeN" value="97" style="width:120px;"></div>
+      <button class="btn primary" onclick="runPrime()">Check</button>
+    </div>
+    <div id="primeResult" style="font-family:var(--font-mono); font-size:13px; color:var(--text-muted); margin-top:10px;"></div>
+  `;
+  runGcd(); runMod(); runPrime();
+};
+function runGcd(){
+  let a = parseInt(document.getElementById('gcdA').value)||0;
+  let b = parseInt(document.getElementById('gcdB').value)||0;
+  let steps = [];
+  let x=Math.abs(a), y=Math.abs(b);
+  while(y){ steps.push(`gcd(${x}, ${y}) → gcd(${y}, ${x % y})`); [x,y]=[y, x % y]; }
+  steps.push(`gcd result = ${x}`);
+  document.getElementById('gcdSteps').innerHTML = steps.map(s=>`<div>${esc(s)}</div>`).join('');
+}
+function runMod(){
+  const a = parseInt(document.getElementById('modA').value)||0;
+  const n = Math.max(2, parseInt(document.getElementById('modN').value)||12);
+  const r = ((a % n) + n) % n;
+  const cx=80, cy=80, rad=60;
+  let svg = `<circle cx="${cx}" cy="${cy}" r="${rad}" fill="none" stroke="#2A3448"/>`;
+  for(let i=0;i<n;i++){
+    const ang = (i/n)*Math.PI*2 - Math.PI/2;
+    const x = cx+Math.cos(ang)*rad, y = cy+Math.sin(ang)*rad;
+    const on = i===r;
+    svg += `<circle cx="${x}" cy="${y}" r="${on?9:5}" fill="${on?'#E8A33D':'#1C2438'}" stroke="${on?'#E8A33D':'#2A3448'}"/>`;
+    svg += `<text x="${x}" y="${y-13}" text-anchor="middle" font-size="10" fill="${on?'#E8A33D':'#5A6379'}">${i}</text>`;
+  }
+  document.getElementById('modSvg').innerHTML = svg;
+  document.getElementById('modResult').textContent = `${a} mod ${n} = ${r}`;
+}
+function runPrime(){
+  const n = parseInt(document.getElementById('primeN').value)||0;
+  const out = document.getElementById('primeResult');
+  if(n<2){ out.textContent = `${n} is not prime (primes are ≥ 2).`; return; }
+  let divisor = null;
+  for(let i=2;i<=Math.sqrt(n);i++){ if(n%i===0){ divisor=i; break; } }
+  out.textContent = divisor ? `${n} = ${divisor} × ${n/divisor} → not prime` : `${n} is prime (no divisor found up to √${n} ≈ ${Math.sqrt(n).toFixed(1)})`;
+}
+
+/* ---- 7. Boolean algebra / gates ---- */
+let gateA=1, gateB=0, gateOp='AND';
+DEMOS.boolean = function(mount){
+  mount.innerHTML = `
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:center; margin-bottom:20px;">
+      <div class="switch ${gateA?'on':''}" id="switchA" onclick="toggleGate('A')"><div class="track"></div><span>Input A</span><span class="val" id="valA">${gateA}</span></div>
+      <div class="switch ${gateB?'on':''}" id="switchB" onclick="toggleGate('B')"><div class="track"></div><span>Input B</span><span class="val" id="valB">${gateB}</span></div>
+      <div>
+        <label class="small">Gate</label><br>
+        <select id="gateSelect" onchange="gateOp=this.value; renderGate();">
+          ${['AND','OR','XOR','NAND','NOR'].map(g=>`<option ${g===gateOp?'selected':''}>${g}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <svg id="gateSvg" viewBox="0 0 260 120" style="width:100%; max-width:340px; height:auto;"></svg>
+    <div class="section-label">Truth table for ${gateOp}</div>
+    <div id="gateTable"></div>
+  `;
+  renderGate();
+};
+function toggleGate(which){
+  if(which==='A') gateA = gateA?0:1; else gateB = gateB?0:1;
+  renderGate();
+}
+function gateCompute(op,a,b){
+  switch(op){
+    case 'AND': return a&b;
+    case 'OR': return a|b;
+    case 'XOR': return a^b;
+    case 'NAND': return (a&b)?0:1;
+    case 'NOR': return (a|b)?0:1;
+  }
+}
+function renderGate(){
+  document.getElementById('switchA').className = 'switch '+(gateA?'on':'');
+  document.getElementById('switchB').className = 'switch '+(gateB?'on':'');
+  document.getElementById('valA').textContent = gateA;
+  document.getElementById('valB').textContent = gateB;
+  const out = gateCompute(gateOp, gateA, gateB);
+  const wireColor = v => v ? '#5FD9CB' : '#2A3448';
+  document.getElementById('gateSvg').innerHTML = `
+    <line x1="10" y1="30" x2="100" y2="30" stroke="${wireColor(gateA)}" stroke-width="3"/>
+    <line x1="10" y1="90" x2="100" y2="90" stroke="${wireColor(gateB)}" stroke-width="3"/>
+    <rect x="100" y="15" width="80" height="90" rx="14" fill="#1C2438" stroke="#2A3448" stroke-width="1.5"/>
+    <text x="140" y="65" text-anchor="middle" font-size="15" fill="#ECE9E0" font-weight="600">${gateOp}</text>
+    <line x1="180" y1="60" x2="250" y2="60" stroke="${wireColor(out)}" stroke-width="3"/>
+    <circle cx="255" cy="60" r="7" fill="${wireColor(out)}"/>
+    <text x="255" y="45" text-anchor="middle" font-size="12" fill="${out?'#5FD9CB':'#5A6379'}">${out}</text>
+    <text x="10" y="22" font-size="11" fill="#8B93A7">A=${gateA}</text>
+    <text x="10" y="82" font-size="11" fill="#8B93A7">B=${gateB}</text>
+  `;
+  const rows = [[0,0],[0,1],[1,0],[1,1]].map(([a,b])=>{
+    const r = gateCompute(gateOp,a,b);
+    const active = a===gateA && b===gateB;
+    return `<tr class="${active?'hi':''}"><td class="${a?'true':'false'}">${a}</td><td class="${b?'true':'false'}">${b}</td><td class="${r?'true':'false'}" style="font-weight:600;">${r}</td></tr>`;
+  }).join('');
+  document.getElementById('gateTable').innerHTML = `<table class="tt" style="max-width:220px;"><thead><tr><th>A</th><th>B</th><th>out</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ---- 8. Recursion ---- */
+DEMOS.recursion = function(mount){
+  mount.innerHTML = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
+      <div>
+        <label class="small">Function</label><br>
+        <select id="recFn">
+          <option value="factorial">Factorial</option>
+          <option value="fibonacci">Fibonacci</option>
+        </select>
+      </div>
+      <div><label class="small">n</label><br><input type="number" id="recN" value="5" min="0" max="10" style="width:90px;"></div>
+      <button class="btn primary" onclick="runRecursion()">Run</button>
+    </div>
+    <div id="recTrace" style="font-family:var(--font-mono); font-size:12.5px; color:var(--text-muted); white-space:pre; overflow-x:auto; background:#0B0F19; border:1px solid var(--border); border-radius:10px; padding:16px; max-height:340px; overflow-y:auto;"></div>
+    <div id="recSummary" class="hint"></div>
+  `;
+  runRecursion();
+};
+function runRecursion(){
+  const fn = document.getElementById('recFn').value;
+  const n = Math.max(0, Math.min(10, parseInt(document.getElementById('recN').value)||0));
+  let lines = []; let calls = 0;
+  if(fn==='factorial'){
+    function fact(k, depth){
+      calls++;
+      lines.push('  '.repeat(depth)+`factorial(${k})`);
+      if(k===0){ lines.push('  '.repeat(depth)+'→ 1  (base case)'); return 1; }
+      const r = k*fact(k-1, depth+1);
+      lines.push('  '.repeat(depth)+`→ ${r}`);
+      return r;
+    }
+    const result = fact(n,0);
+    document.getElementById('recTrace').textContent = lines.join('\\n');
+    document.getElementById('recSummary').textContent = `factorial(${n}) = ${result}, using ${calls} calls.`;
+  } else {
+    function fib(k, depth){
+      calls++;
+      lines.push('  '.repeat(depth)+`fib(${k})`);
+      if(k<=1){ lines.push('  '.repeat(depth)+`→ ${k}  (base case)`); return k; }
+      const r = fib(k-1, depth+1) + fib(k-2, depth+1);
+      lines.push('  '.repeat(depth)+`→ ${r}`);
+      return r;
+    }
+    const result = fib(n,0);
+    document.getElementById('recTrace').textContent = lines.join('\\n');
+    document.getElementById('recSummary').textContent = `fib(${n}) = ${result}, using ${calls} calls — notice how fast this grows without memoization.`;
+  }
+}
+
+/* ---- 9. Trees (BST) ---- */
+let bstRoot = null;
+DEMOS.trees = function(mount){
+  mount.innerHTML = `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
+      <div style="flex:1; min-width:180px;"><label class="small">Insert value</label><br><input type="number" id="bstVal" style="width:100%;" placeholder="e.g. 8"></div>
+      <button class="btn primary" onclick="bstInsertFromInput()">Insert</button>
+      <button class="btn" onclick="bstSeed()">Seed example</button>
+      <button class="btn" onclick="bstClear()">Clear</button>
+    </div>
+    <svg id="bstSvg" viewBox="0 0 480 220" style="width:100%; height:auto;"></svg>
+    <div id="bstTraversals" style="margin-top:12px; font-family:var(--font-mono); font-size:13px; color:var(--text-muted);"></div>
+  `;
+  bstSeed();
+  document.getElementById('bstVal').addEventListener('keydown', e=>{ if(e.key==='Enter') bstInsertFromInput(); });
+};
+function bstInsert(root, value){
+  if(root===null) return {value, left:null, right:null};
+  if(value < root.value) root.left = bstInsert(root.left, value);
+  else if(value > root.value) root.right = bstInsert(root.right, value);
+  return root;
+}
+function bstInsertFromInput(){
+  const v = parseInt(document.getElementById('bstVal').value);
+  if(!isNaN(v)){ bstRoot = bstInsert(bstRoot, v); document.getElementById('bstVal').value=''; renderBst(); }
+}
+function bstSeed(){ bstRoot=null; [8,3,10,1,6,14,4,7].forEach(v=> bstRoot=bstInsert(bstRoot,v)); renderBst(); }
+function bstClear(){ bstRoot=null; renderBst(); }
+function bstTraverse(node, order, out){
+  if(!node) return;
+  if(order==='pre') out.push(node.value);
+  bstTraverse(node.left, order, out);
+  if(order==='in') out.push(node.value);
+  bstTraverse(node.right, order, out);
+  if(order==='post') out.push(node.value);
+}
+function renderBst(){
+  const svg = document.getElementById('bstSvg');
+  const traversalsEl = document.getElementById('bstTraversals');
+  if(!bstRoot){ svg.innerHTML=''; traversalsEl.textContent='Tree is empty.'; return; }
+  // assign x via inorder index, y via depth
+  let counter = 0;
+  const positions = new Map();
+  let maxDepth = 0;
+  (function assign(node, depth){
+    if(!node) return;
+    assign(node.left, depth+1);
+    positions.set(node, {x: counter++, depth});
+    maxDepth = Math.max(maxDepth, depth);
+    assign(node.right, depth+1);
+  })(bstRoot, 0);
+  const totalLeaves = counter;
+  const width = Math.max(320, totalLeaves*56);
+  const dx = width/(totalLeaves+1);
+  const dy = 46;
+  let lines='', circles='';
+  (function draw(node){
+    if(!node) return;
+    const p = positions.get(node);
+    const x = (p.x+1)*dx, y = p.depth*dy + 26;
+    if(node.left){ const pl=positions.get(node.left); lines += `<line x1="${x}" y1="${y}" x2="${(pl.x+1)*dx}" y2="${pl.depth*dy+26}" stroke="#2A3448" stroke-width="1.5"/>`; }
+    if(node.right){ const pr=positions.get(node.right); lines += `<line x1="${x}" y1="${y}" x2="${(pr.x+1)*dx}" y2="${pr.depth*dy+26}" stroke="#2A3448" stroke-width="1.5"/>`; }
+    circles += `<circle cx="${x}" cy="${y}" r="16" fill="#1C2438" stroke="#5FD9CB" stroke-width="1.5"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="#ECE9E0">${node.value}</text>`;
+    draw(node.left); draw(node.right);
+  })(bstRoot);
+  svg.setAttribute('viewBox', `0 0 ${width} ${(maxDepth+1)*dy+20}`);
+  svg.innerHTML = lines+circles;
+  const pre=[], inn=[], post=[];
+  bstTraverse(bstRoot,'pre',pre); bstTraverse(bstRoot,'in',inn); bstTraverse(bstRoot,'post',post);
+  traversalsEl.innerHTML = `In-order: ${inn.join(', ')}<br>Pre-order: ${pre.join(', ')}<br>Post-order: ${post.join(', ')}`;
+}
+
+/* ================= INIT ================= */
+selectTopic('logic');
+</script>
+</body>
+</html>
